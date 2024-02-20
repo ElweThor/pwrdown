@@ -6,6 +6,7 @@
  There is a "double check", before the server really shuts down: this is made to avoid having "early shutdowns" in case of (1) temporary LAN disconnection of the server and/or the "reference" client, (2) to suit the need, sometimes, to keep the server up, when just starting alone or after a client's shutdown: in such cases you should have the time to access server's console and stop the automation by issuing a command.
 
 *(excerpt from manpage)*
+
  This system utility will do a check every 5 minutes (accordingly to configuration's default, if unchanged) and, if the remote reference host is found inactive, even the local host will be shut down.
  Options/commands are provided to temporarily or completely stop the automated checks and to see the automation's status, plus a couple of shutdown's related utilities.
  Read the full documentation for further and technical details.
