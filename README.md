@@ -52,3 +52,8 @@
 
 *-V, --version*
     Display program's version, build, author, license and exits.
+
+
+**IMPORTANT NOTES** *to Git downloaders*
+
+The whole package is made to be contained into *its own directory* (my default: /usr/local/share/pwrdown/) but, as usual into a Linux system, you'll need to "spread" parts throughout your system, or it won't work: my solution, to *keep the package in its own directory tree* (to keep its management easy), was to use ***symlinks***, instead of creating some kind of "installation": to know where the symlinks have to be placed, just look at the very ***first line** of each file* (they're all source, no object files here): every *path* and (symlink) *name* is written there.
