@@ -1,0 +1,7 @@
+# /etc/cron.d/pwrdown: crontab fragment for powerdown check
+
+MAILTO=""
+
+#m h dom mon dow user   command
+# do checks every 5'
+*/5 * * * *   root    /usr/local/sbin/pwrdown
