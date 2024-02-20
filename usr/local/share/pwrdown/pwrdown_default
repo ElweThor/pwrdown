@@ -1,0 +1,13 @@
+# /etc/default/pwrdown
+#
+# This file will be used to declare some vars for pwrdown
+#
+# Uncomment the following if you don't want localized log messages
+# export LC_ALL=C
+
+# If you want to specify any additional OPTION to the start
+# scripts specify them here
+# OPTIONS=...
+
+# Main switch: declare here if we want the utility to be active: 'yes'|'no'
+START=yes
