@@ -1,0 +1,217 @@
+#!/bin/sh
+#
+# /usr/local/share/pwrdown/pwrdown
+#
+#  PowerDown facility: this script, launched by a Cron job every T1 mins, checks
+# if a related machine is alive: if the remote machine is off-line/switched off
+# this machine will follow into T2 mins.
+#
+
+# immediate exit on any error
+set -e
+
+PATH=/bin:/sbin:/usr/bin
+
+##
+## Versioning (keep updated)
+##
+ZVER=1.0.5.16
+ZBUILD=20230513
+ZCOPY="(C) 2016-2023"
+ZAUTH="Luca Coianiz <luca@coianiz.eu>"
+ZLIC1="released under GPL2"
+ZLIC2="<http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html>"
+ZLAW1="This is free software; you are free to change and redistribute it."
+ZLAW2="There is NO WARRANTY, to the extent permitted by law."
+
+
+# check if the remote host is alive (=answering) or not
+#  in: $RHOST
+# out: 0 = ok/alive | 1 = ko/dead
+chkrhost() {
+    ISALIVE=$(ping -nqc "$PINGS" -w "$PINGTMO" -W "$PINGWAIT" "$RHOST") && { echo 0 ; exit 0 ; }
+    echo 1
+}
+
+DEFS=/etc/default/pwrdown
+CONFD=/etc/pwrdown
+CONF=pwrdown.conf
+# developing hooks only
+#CONFD=/usr/local/share/pwrdown
+#CONF=pwrdown_conf-new
+BASE=${0##*/}
+
+# Source defaults file
+[ -r $DEFS ] || { printf "\nDefaults file %s missed, please check\n\n" $DEFS; exit 2; }
+    . $DEFS
+
+# check if we can do our work (if not we exit silently)
+[ "$1" = "" ] && {                      # do it if no input given
+    [ ".$START" = ".yes" ] || exit 1
+}
+
+# Source config file
+[ -r "$CONFD/$CONF" ] || { printf "\nConfig file %s/%s missed, please check\n\n" $CONFD $CONF; exit 2; }
+    . "$CONFD/$CONF"
+
+# early check if Global semaphore is set and no input given, for early exit (Cron ops)
+[ "$1" = "" ] && {                      # do it if no input given
+    [ -e "$SEMDIR/$GLOBSEM" ] && exit 0 # exit with no action
+}
+
+case "$1" in
+    -a | --auto)
+        if [ -e "$SEMDIR/$GLOBSEM" ]; then   # check if Global semaphore was set
+            rm -f "$SEMDIR/$GLOBSEM"    # removes it
+            printf "\nAutomatic processing restored\n\n"
+        else
+            printf "\nAutomatic processing yet active\n\n"
+        fi
+        ;;
+    -f | --pwrdown)
+        if [ -e "$SEMDIR/$CHKSEM" ]; then # check if Check semaphore was set
+            rm -f "$SEMDIR/$CHKSEM"     # removes it
+        fi
+        [ ".$WALLUSERS" = ".yes" ] && wall "$CONFD/$WALLMSG2"
+        [ "$LOGLEVEL" -ge 6 ] && logger -t PwrDown "$(date +%Y%m%d.%H%M%S) powerdown in progress"
+        halt -p                 # starts the shutdown/poweroff
+        ;;
+    -r | --reboot)
+        if [ -e "$SEMDIR/$CHKSEM" ]; then # check if Check semaphore was set
+            rm -f "$SEMDIR/$CHKSEM"     # removes it
+        fi
+        [ ".$WALLUSERS" = ".yes" ] && wall "$CONFD/$WALLMSG3"
+        [ "$LOGLEVEL" -ge 6 ] && logger -t PwrDown "$(date +%Y%m%d.%H%M%S) reboot in progress"
+        reboot                  # starts the reboot
+        ;;
+    -s | --noauto)
+        if [ ! -e "$SEMDIR/$GLOBSEM" ]; then    # check if Global semaphore was not set
+            echo "$GLOBSEMTXT" > "$SEMDIR/$GLOBSEM" # create it
+            if [ -e "$SEMDIR/$CHKSEM" ]; then   # check if Check semaphore was set
+                rm -f "$SEMDIR/$CHKSEM"         # removes it
+            fi
+            printf "\nAutomatic processing stopped\n\n"
+        else
+            printf "\nAutomatic processing yet stopped\n\n"
+        fi
+        ;;
+    -S | --status)
+        # check if Global semaphore was set
+        printf "\n___Status___\n"
+        if [ -e "$SEMDIR/$GLOBSEM" ]; then
+            echo "[Y] Global semaphore ($GLOBSEM) is set: no automation enabled (see -a)"
+        else
+            echo "[N] Global semaphore ($GLOBSEM) is not set: automation in progress"
+        fi
+        # check if Check semaphore was set
+        if [ -e "$SEMDIR/$CHKSEM" ]; then
+            echo "[Y] First check semaphore ($CHKSEM) active: shutdown in $CHKDLY minutes"
+        else
+            echo "[N] First check semaphore ($CHKSEM) not set"
+        fi
+        ISALIVE=$(chkrhost)
+        if [ "$ISALIVE" -eq 0 ]; then
+            echo "[Y] Remote host ($RHOST) is active"
+        else
+            echo "[N] Remote host ($RHOST) is inactive"
+        fi
+        echo ""
+        ;;
+    -p | --postpone)
+        echo ""
+        if [ -e "$SEMDIR/$CHKSEM" ]; then # check if Check semaphore was set
+            rm -f "$SEMDIR/$CHKSEM"     # removes it
+            echo "Powerdown postponed $CHKDLY': $CHKSEM semaphore removed"
+        else
+            echo "No $CHKSEM semaphore found"
+        fi
+        echo ""
+        ;;
+    -n | --dry-run)
+        DRYRUN=yes              # temporary switch the dry-run flag to on for the automation
+        ;;
+    --playtest1)
+        #echo "$AUDIBLE_CHK1_ALIVE_MUS"
+        beep $AUDIBLE_CHK1_ALIVE_MUS
+        ;;
+    --playtest2)
+        #echo "$AUDIBLE_CHK1_MUS"
+        beep $AUDIBLE_CHK1_MUS
+        ;;
+    --playtest3)
+        #echo "$AUDIBLE_OFF_MUS"
+        beep $AUDIBLE_OFF_MUS
+        ;;
+    -h | --help)
+        printf "\nUsage: %s [[-a|--auto]|[-f|--pwrdown]|[-r|--reboot]|[-s|--noauto]|[-S|--status]|[-p|--postpone]|[-h|--help]|[-V|--version]]\n" "$BASE"
+        printf "\n System shutdown/poweroff automation if a remote \"reference\" machine is inactive.\n\n"
+        printf "(no option)\tcompletely automated processing, usually via Cron\n\t\t(see /etc/cron.d/pwrdown)\n"
+        printf "\n-a, --auto\tautomatic processing restored (see --noauto)\n"
+        printf "\n-f, --pwrdown\tforces an immediate shutdown/poweroff, same as \"shutdown -h now\"\n"
+        printf "\n-r, --reboot\tforces an immediate reboot, same as \"shutdown -r now\"\n"
+        printf "\n-s, --noauto\tstops the automatic processing, setting the global semaphore\n\t\t%s which remains through sessions\n" "$GLOBSEM"
+        printf "\n-S, --status\tshows the current automation's status: short and global\n\t\tsemaphores, remote host presence, etc.\n"
+        printf "\n-p, --postpone\tif the near-to-shutdown warning was received, you can postpone\n\t\tit (for %s mins)\n" "$CHKDLY"
+        printf "\n-n, --dry-run\tdo the same as no options given (automated process) but without\n\t\treally doing the (possible) shutdown\n\n"
+        printf "\n--playtest1\tplay the system-alive sounds only (test purposes)"
+        printf "\n--playtest2\tplay the warning sounds only (test purposes)"
+        printf "\n--playtest3\tplay the shutdown sounds only (test purposes)\n"
+        printf "\n-h, --help\tthis help"
+        printf "\n-V, --version\tshows program's version, build and author\n\n"
+        ;;
+    -V | --version)
+        printf "\n%s, version %s build %s\n" "$BASE" "$ZVER" "$ZBUILD"
+        printf "Copyright %s %s\n" "$ZCOPY" "$ZAUTH"
+        printf "License: %s\n%s\n" "$ZLIC1" "$ZLIC2"
+        printf "\n%s\n%s\n\n" "$ZLAW1" "$ZLAW2"
+        ;;
+    *)
+        if [ "$2" != "" ]; then
+            echo "WARNING: only zero or one parameter is allowed (see --help): further parameter(s) dropped (continuing)"
+        fi
+        ;;
+esac
+
+if [ ! "$1" = "" ]; then
+    if [ ! "$1" = "-n" ]; then
+        if [ ! "$1" = "--dry-run" ]; then
+            exit 0
+        fi
+    fi
+fi
+
+# This place is reached if no option/no dry-run is given and the Global semaphore is unset
+
+ISALIVE=$(chkrhost)
+
+# if RHost is alive we've few to do
+if [ "$ISALIVE" -eq 0 ]; then
+    if [ -e "$SEMDIR/$CHKSEM" ]; then   # check if 1st chk semaphore was set
+        rm -f "$SEMDIR/$CHKSEM"         # if yes we reset it
+    fi
+    [ ".$AUDIBLE_CHK1_ALIVE" = ".yes" ] && { # make beep to play some music
+        beep $AUDIBLE_CHK1_ALIVE_MUS
+    }
+    exit 0                              # then exit
+fi
+
+# if RHost is not alive
+if [ ! -e "$SEMDIR/$CHKSEM" ]; then     # check if 1st chk semaphore was NOT set
+    echo "$CHKSEMTXT" > "$SEMDIR/$CHKSEM" # create the semaphore with a meaningful content
+    [ ".$AUDIBLE_CHK1" = ".yes" ] && {  # make beep to play some music
+        beep $AUDIBLE_CHK1_MUS
+    }
+    [ ".$WALLUSERS" = ".yes" ] && wall "$CONFD/$WALLMSG1"
+    [ "$LOGLEVEL" -ge 6 ] && logger -t PwrDown "$(date +%Y%m%d.%H%M%S) shutdown in $CHKDLY minutes"
+    exit 0                              # and exit
+else                                    # else this is the 2nd check:
+    rm -f "$SEMDIR/$CHKSEM"             # reset 1st check semaphore
+    [ ".$AUDIBLE_OFF" = ".yes" ] && {   # make beep to play some music before poweroff
+        beep $AUDIBLE_OFF_MUS
+        sleep 5                         # giving it the time to play
+    }
+    [ ".$WALLUSERS" = ".yes" ] && wall "$CONFD/$WALLMSG2"
+    [ "$LOGLEVEL" -ge 6 ] && logger -t PwrDown "$(date +%Y%m%d.%H%M%S) powerdown in progress"
+    [ ".$DRYRUN" = ".no" ] && halt -p
+    [ ".$DRYRUN" = ".yes" ] && echo "DRYRUN \"halt -p\" (simulation)"
+fi
