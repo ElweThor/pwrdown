@@ -1,0 +1,12 @@
+* -c|--check switch, instead of null: null imput -> help
+
+* implement the ability to specify remote host by IP (actual), by local name
+ (via /etc/hosts) or by FQDN (via internet/DNS):
+    RHOST_RESOLV=IP|LNAME|FQDN
+
+    IP: standard IPv4 w.x.y.z
+    LNAME: the last part of /etc/host entry
+    FQDN: fully qualified domain name (without protocol prefix: www.sample.com,
+         not http://www.sample.com/)
+
+* debian package
