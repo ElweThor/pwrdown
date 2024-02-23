@@ -1,0 +1,36 @@
+#!/bin/sh
+#
+# Small utility to help pod2man converting the pod doc to manpage
+#
+
+set -e
+
+#PATH=/usr/bin:/bin
+
+CTR="System Utilities"
+#DATE="5 june 2016"
+NAME="pwrdown"
+#REL="1.0.4.15"
+SEC="8"
+
+[ ! -s "$NAME.$SEC.pod" ] && { printf "\nWARNING: source file is empty!\n\n"; exit 2; }
+
+cp "$NAME.$SEC.pod" "$NAME.$SEC.pod.bkp"
+
+[ ".$DATE" = "." ] && {
+    printf "\n"
+    ls ../"$NAME"-*
+    printf "\nBuild date: "
+    read DATE
+}
+
+[ ".$REL" = "." ] && {
+    printf "\nCurrent version: "
+    read REL
+    printf "\n"
+}
+
+pod2man --center="$CTR" --date="$DATE" --name="$NAME" --release="$NAME-$REL" --section="$SEC" "$NAME.$SEC.pod" "$NAME.$SEC"
+#echo "pod2man --center=\"$CTR\" --date=\"$DATE\" --name=\"$NAME\" --release=\"$NAME-$REL\" --section=\"$SEC\" \"$NAME.$SEC.pod\" \"$NAME.$SEC\""
+gzip "$NAME.$SEC"
+#echo "gzip \"$NAME.$SEC\""
