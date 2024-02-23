@@ -1,0 +1,93 @@
+# /etc/pwrdown.conf
+#
+# configuration file for pwrdown facility
+# see /usr/local/share/pwrdown/doc for info
+#
+# (C) 2016 Luca Coianiz <luca@coianiz.eu>
+
+# Dry-run default
+DRYRUN=no
+
+# Check(s) delay (mins): used for WALL only
+CHKDLY=5
+
+##
+## Semaphores section
+##
+# semaphores directory
+SEMDIR=/var/tmp/pwrdown
+
+# 1st check done: if 2nd check finds this semaphore launches the shutdown
+CHKSEM=PWRDOWN_CHK
+# short description to place into this semaphore
+CHKSEMTXT="This semaphore is used by pwrdown facility to check if to shutdown the linux box (2nd check)"
+
+# global stop operations: even if checks are done, no further action is taken
+GLOBSEM=PWRDOWN_NO
+# short description to place into this semaphore
+GLOBSEMTXT="This semaphore is used to avoid pwrdown facility to shutdown the system if the linux box is running alone in the LAN"
+
+##
+## Warn users with Wall
+##
+# wall-warning users about check/shutdown/reboot? yes|no
+#WALLUSERS=yes
+WALLUSERS=no
+# The three different messages for check, shutdown and reboot
+# check message
+WALLMSG1=pwrdown_wmsg1
+# shutdown message
+WALLMSG2=pwrdown_wmsg2
+# reboot message
+WALLMSG3=pwrdown_wmsg3
+
+##
+## Audio section: for users near to the local host
+##
+# Audible "beep" if 1st check sets up it's semaphore? yes|no
+AUDIBLE_CHK1=yes
+# 1st short music to warn users (near to the local machine)
+AUDIBLE_CHK1_MUS="-f 1000 -r 2 -n -r 8 -l 10 -n -f 1500 -r 2"
+
+# Audible beep if 1st check reports remote host as active? yes|no
+AUDIBLE_CHK1_ALIVE=yes
+# very short signal to tell users (near to the local machine) that 1st check found the remote host alive
+AUDIBLE_CHK1_ALIVE_MUS="-f 5000 -l 30"
+
+# Audible "beep" if 2nd check happened and going to shutdown? yes|no
+AUDIBLE_OFF=yes
+# 2nd short music to warn users (near to the local machine)
+AUDIBLE_OFF_MUS="-f 4000 -d 10 -l 50 -r 3 -n -f 3500 -d 10 -l 50 -r 3 -n -f 3000 -d 10 -l 50 -r 3 -n -f 2500 -d 10 -l 50 -r 3 -n -f 2000 -d 10 -l 50 -r 3 -n -f 1500 -d 10 -l 50 -r 3 -n -f 1000 -d 10 -l 50 -r 3"
+
+##
+## Check's related
+##
+# the reference host to check
+#20170304=LC at the moment, as I'm using WinPC more, I spaw Mac with WinPC IPs: next step will be to implement an IP list to ping/check
+# Macpro
+#RHOST=192.168.10.8
+# Werewolf (Win PC)
+RHOST=192.168.10.4
+
+# Test IP of a NOT existing machine: used to test the utility
+#RHOST=192.168.10.9
+# total number of pings: 1 is too few, maybe 10 is too much, but tailor them to the network delays
+PINGS=3
+# total time, in seconds, to wait for ping to listen
+PINGTMO=10
+# wait time for the single ping
+PINGWAIT=1
+
+##
+## Logging levels
+##
+# Level Tag     Meaning
+# 0     EMERG   unused
+# 1     ALERT   unused
+# 2     CRIT    unused
+# 3     ERR     errors only
+# 4     WARN    warnings only
+# 5     NOTICE  only explicit messages
+# 6     INFO    the most relevant messages (default)
+# 7     DEBUG   all the taken actions
+LOGLEVEL=6
