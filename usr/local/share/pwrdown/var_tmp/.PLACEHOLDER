@@ -1,0 +1,2 @@
+This directory should hold the pwrdown facility's semaphores, if there is any.
+Look at /usr/local/share/pwrdown/doc/ for more detailed informations.
