@@ -1,0 +1,43 @@
+20230513 1.0.5.16
+.16 ! fixed beep sounds playing, which was not working
+
+20160605 1.0.4.15 [LC]
+.15 + configurable short sound even when the remote host is active
+.14 * commented the config file more
+.13 * synced pwrdown's internal help and man page
+.12 * changed from PROC* to Z* variables and moved them into the main script
+.11 * solved some "lint" warnings after checking with shellcheck utility
+
+20160524 1.0.3.10 [LC]
+.10 * 5" delay introduced after power-off music (so to play it)
+.9 * minor cosmetic adjustments
+
+20160517 1.0.2.8 [LC]
+.8 * pwrdown: no more ^G to tty but using Beep to play some tunes at CHK1 and OFF
+.7 * pwrdown_conf: added two "musics" in terms of Beep freq/dur
+
+20160515 1.0.1.6 [LC]
+# first running by cron procedure
+.6 * moved semaphores to /var/tmp/pwrdown/
+.5 + versioning variables
+.4 + loglevels proto-definition (need developing)
+.3 + log messages to syslog
+.2 + audible signal at first check
+.1 * all external variables moved to pwrdown.conf
+
+20160511 1.0.0.0 [LC]
+.0 + base procedure
+
+___Developers___
+[LC] Luca Coianiz <luca@coianiz.eu>
+
+___key___
++ Added
+* Modified
+) Deprecated
+! Fixed
+- Removed
+$ Security
+^ Unreleased (will do)
+@ Reference
+# Comment
