@@ -1,0 +1,107 @@
+=head1 NAME
+
+pwrdown - Power down facility, to power down the local system if another/remote host goes offline.
+
+=head1 SYNOPSIS
+
+pwrdown [OPTION]
+
+=head1 DESCRPTION
+
+ This system utility will do a check every 5 minutes (accordingly to configuration's default, if unchanged) and, if the remote reference host is found inactive, even the local host will be shut down.
+ Options/commands are provided to temporarily or completely stop the automated checks and to see the automation's status, plus a couple of shutdown's related utilities.
+ Read the full documentation for further and technical details.
+
+=head1 OPTIONS
+
+no option
+    Via Cron automated checks (see /etc/cron.d/pwrdown): after the second check, if the remote system doesn't answer, the local one is shut down.
+    Via command line: checks are forced, same behavior as via Cron but without the usual delays (good for testing).
+
+-a, --auto
+    Automatic processing restored, cleaning the global semaphore PWRDOWN_NO (see --noauto).
+
+-f, --pwrdown
+    Forces an immediate shutdown/poweroff, same as "shutdown -h now".
+
+-r, --reboot
+    Forces an immediate reboot, same as "shutdown -r now".
+
+-s, --noauto
+    Stops the automatic processing, setting the global semaphore PWRDOWN_NO which remains through sessions.
+
+-S, --status
+    Shows the current automation's status: short and global semaphores, and remote host status.
+
+-p, --postpone
+    If the first shutdown warning was received, the further shutdown action can be postponed for 5 mins (default) without completely stopping the automation.
+
+-n, --dry-run
+    Do the same as no option is given (automated process), but without really shutting the system down.
+
+--playtest1
+    play the system-alive sounds only (test purposes)
+
+--playtest2
+    play the warning sounds only (test purposes)
+
+--playtest3
+    play the shutdown sounds only (test purposes)
+
+-h, --help
+    Display a short help and exits.
+
+-V, --version
+    Display program's version, build, author, license and exits.
+
+
+=head1 EXIT STATUS
+
+    0	ok
+    1	help or version
+    2	errors
+
+=head1 FILES
+
+/etc/default/pwrdown		defaults: start authorization, options.
+
+/etc/pwrdown/pwrdown.conf	configuration file.
+
+/etc/pwrdown/pwrdown_wmsg1	first-check-failed message.
+
+/etc/pwrdown/pwrdown_wmsg2	shutdown message.
+
+/etc/pwrdown/pwrdown_wmsg3	reboot message.
+
+/etc/cron.d/pwrdown			cron-job automation to do checks every N minutes (default 5).
+
+/var/tmp/pwrdown/PWRDOWN_NO     stop-automation semaphore: no further automation allowed.
+
+/var/tmp/pwrdown/PWRDOWN_CHK    first-check-failed semaphore: next failed check will power down the machine.
+
+=head1 REPORTING BUGS
+
+If no mantainer is listed, please, send bug-reports, suggestions and comments to the author. 
+
+=head1 SEE ALSO
+
+shutdown(8), halt(8), reboot(8), cron(8)
+
+=head1 AUTHOR
+
+Written by Luca Coianiz <luca@coianiz.eu>.
+
+=head1 COPYRIGHT
+
+Copyright (C) 2016-2023 Luca Coianiz
+
+ This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
+ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+ You should have received a copy of the GNU General Public License along with this program; if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ Or point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html
+
+=head1 HISTORY
+
+2023 sound play fix [LC]
+
+2016 first version, by Luca Coianiz
