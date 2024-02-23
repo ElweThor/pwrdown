@@ -1,0 +1,14 @@
+_This_package___   ->   _Where_to_place_installed_files (symlinks)___
+ pwrdown_cron_d         /etc/cron.d/pwrdown
+ pwrdown_default        /etc/default/pwrdown
+ pwrdown_conf           /etc/pwrdown.conf
+ pwrdown                /usr/local/sbin/pwrdown
+ doc/                   /usr/share/doc/pwrdown/
+    CHANGELOG                   CHANGELOG
+    DOCUMENTATION               DOCUMENTATION
+    LICENSE                     LICENSE
+    MANIFEST                    MANIFEST
+    NEWS                        NEWS
+    README                      README
+    TODO                        TODO
+    pwrdown.8.gz        /usr/local/share/man/man8/pwrdown.8.gz
