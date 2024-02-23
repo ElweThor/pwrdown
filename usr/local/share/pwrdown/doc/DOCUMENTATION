@@ -1,0 +1,144 @@
+
+                        PowerDown  Facility
+                       testing a remote host
+
+
+ You need this program if, like me, you wish to shutdown a linux box if another
+machine is "offline" (not answering, powered off, etc.).
+
+ In my case, I have a LAN and I'm used to have my linux LAN server (SAMBA, mail,
+etc.) started via Wake-on-LAN all the times I switch my client on.
+ When I switch the client off, most of the times I don't like to log into the
+server to shutdown it too. At the same time, as I've no public service on it
+(e.g. Apache) there is no reason to leave it powered on.
+
+ This is where this utility jumps in: it checks if my client is on and, if it
+will be found off, even the linux box will shut down.
+
+
+ QuickStart
+ ==========
+
+ Debian setup:
+
+ 1) edit the following files, in this package's directories, to reflect your
+situation:
+
+    pwrdown_default     initial defaults (active/inactive, options, etc.)
+    pwrdown_conf        remote IP address to test, messages, audible beeps etc.
+    pwrdown_cron_d      the cron job (timer, cron's parameters, etc.)
+
+ 2) create these directories
+        /etc/pwrdown/
+        /var/tmp/pwrdown/
+
+ 3) make a symlink, in sequence, to
+
+    /etc/default/pwrdown        ->      pwrdown_default
+    /etc/pwrdown/pwrdown.conf   ->      pwrdown_conf
+    /etc/pwrdown/pwrdown_wmsg1  ->      pwrdown_wmsg1
+    /etc/pwrdown/pwrdown_wmsg2  ->      pwrdown_wmsg2
+    /etc/pwrdown/pwrdown_wmsg3  ->      pwrdown_wmsg3
+    /usr/local/sbin/pwrdown     ->      pwrdown_current
+    /etc/cron.d/pwrdown         ->      pwrdown_cron_d
+
+ 4) after you'll symlink /etc/cron.d/pwrdown Cron will start to launch the
+pwrdown utility every 5 minutes (default): if it finds the remote host "down"
+(not answering to a ping for 3 times) it will raise a flag, signaling it (if
+allowed to do: see /etc/pwrdown/pwrdown.conf) and, if the next 5' check will
+fail, the linux machine will do a shutdown (power off).
+
+
+ Preventing shutdown
+ ===================
+
+ If you need to have the linux machine up even if the remote host is down, you
+can stop the automation, temporarily or completely, in two ways:
+
+ pwrdown -p
+
+ will postpone the automatic shutdown by the check-delay time only: this is
+useful if you just need to have a few minutes for a quick thing, leaving the
+automation enabled
+
+ pwrdown -s
+
+ will completely stop the automation to work (--noauto) untill you re-enable it
+via -a (or --auto) command.
+
+ Try --help to see the whole list of available commands.
+
+
+ Testing
+ =======
+
+ If you need to test if the automation is working, you can do this way:
+
+ 1) stop the automation: pwrdown -s
+
+ 2) change the remote host IP into pwrdown.conf to an unreachable one
+
+ 3) do the first (dry-run) test: pwrdown -n
+
+  if you left the audible signals enabled, you should hear the 1st check sound
+
+ 4) do the second (dry-run) test: pwrdown -n
+
+  if you left the audible signals enabled, you should hear the 2nd check sound
+and see the "DRYRUN halt -p (simulation)" warning: that's the point where, if
+the remote machine's IP was the right one (and the automation was enabled) the
+system had to power off.
+
+ To get back to full functionality just replace back the correct IP into
+pwrdown.conf and re-enable (-a) the automation.
+
+ If, at any time, you need to see which is the current status of the automation,
+as well as the remote host's one: pwrdown -S
+
+
+ Commands
+ ========
+
+ -a | --auto    enables the check/powerdown automation
+ -f | --pwrdown immediate power down (shutdown, not just emergency power off)
+ -r | --reboot  immediate reboot (as shutdown -r now)
+ -s | --noauto  disables the automation ('till re-enabled: see -a)
+ -p | --postpone postpones the 1st check: you'll gain N minutes (5' default)
+ -n | --dry-run execute all the automatic functions without shutting down
+ --playtest1 play the system-alive sounds only (test purposes)
+ --playtest2 play the warning sounds only (test purposes)
+ --playtest3 play the shutdown sounds only (test purposes)
+ -h | --help    this one
+ -V | --version version informations, license, etc.
+
+
+ Multiple commands
+ =================
+
+ At the moment there are no multiple commands, as all commands are mutually
+exclusive. If you'll give more than one command line's switch the utility will
+give a warning but then will drop the exceedingly ones and goes with the first
+only.
+ Next versions will probably have the ability to handle more than one input
+parameter (e.g. -f -n, -r -n, additional commands/parameters, etc.).
+
+
+ Tech infos
+ ==========
+
+ For the utility to be statefull we're using two "semaphores", (temporary stored
+into /var/tmp/pwrdown/ directory): if you look at this directory you may find
+
+ PWRDOWN_NO     this is the stop-automation semaphore: no automation allowed
+
+ PWRDOWN_CHK    1st check semaphore: next check will power down the machine
+
+ The first semaphore is set up by the -s command and removed by -a one.
+
+ The second semaphore is the one which -p command will remove if you need to
+temporary stop the power down automation.
+
+ Relaying to the semaphores, the automation will be transparent to powerdowns
+and reboots... which is exactly what we're in need to have.
+ You can remove the semaphores by hand, if you need/like it, having in mind
+what they do.
