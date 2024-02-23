@@ -1,0 +1,8 @@
+ This is the documentation directory
+
+ To change/update the manpage
+    1. modify/edit pwrdown.8.pod
+    2. run the mkpod2man utility: ./mkpod2man
+    3. give build date and version
+
+ Keep the docs aligned: sync pwrdown.8.pod with DOCUMENTATION file and tool's internal help
